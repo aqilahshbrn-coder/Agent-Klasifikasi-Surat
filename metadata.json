@@ -1,0 +1,6 @@
+{
+  "name": "AI Agent Klasifikasi Arsip Surat",
+  "description": "Sistem asisten klasifikasi arsip pada penciptaan surat untuk Tim Persuratan dengan validasi pedoman resmi, verifikasi cepat, dan dashboard indikator.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
