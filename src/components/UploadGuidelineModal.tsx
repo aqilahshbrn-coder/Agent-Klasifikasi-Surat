@@ -140,6 +140,13 @@ KS.03.02 Kalibrasi Alat Kesehatan Radiologi dan Laboratorium: Uji kelayakan berk
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 3.5 * 1024 * 1024) {
+        setError(
+          `Ukuran berkas (${(file.size / (1024 * 1024)).toFixed(1)} MB) melebihi batas upload server Vercel (~3.5 MB). Silakan gunakan tab 'Tempel Teks Dokumen' atau unggah berkas teks/CSV/JSON yang lebih ringkas.`
+        );
+        setSelectedFile(null);
+        return;
+      }
       setSelectedFile(file);
       setPastedText('');
       setError(null);

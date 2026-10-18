@@ -21,11 +21,19 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     let errMsg = `Request failed: ${res.status} ${res.statusText}`;
-    try {
-      const data = await res.json();
-      if (data.error) errMsg = data.error;
-    } catch {
-      // ignore
+    if (res.status === 413) {
+      errMsg = 'Ukuran berkas melebihi batas upload server (maksimal ~3.5 MB di Vercel). Silakan gunakan opsi Tempel Teks Dokumen atau unggah dokumen dalam format TXT/CSV/JSON yang lebih ringkas.';
+    } else if (res.status === 404) {
+      errMsg = 'Layanan API tidak ditemukan (404). Pastikan backend Vercel Serverless Function aktif.';
+    } else if (res.status === 504) {
+      errMsg = 'Proses server mengalami waktu habis (504 Gateway Timeout). Silakan gunakan berkas berukuran lebih kecil atau tempel teks langsung.';
+    } else {
+      try {
+        const data = await res.json();
+        if (data.error) errMsg = data.error;
+      } catch {
+        // ignore
+      }
     }
     throw new Error(errMsg);
   }

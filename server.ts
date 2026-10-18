@@ -2,9 +2,8 @@ import express, { Request, Response } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { createServer as createViteServer } from 'vite';
-import { db } from './src/server/db.ts';
-import { runClassificationAgent, parseGuidelineDocument } from './src/server/gemini.ts';
+import { db } from './src/server/db';
+import { runClassificationAgent, parseGuidelineDocument } from './src/server/gemini';
 
 dotenv.config();
 
@@ -16,9 +15,29 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
+// CORS & Preflight headers for API requests
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // Middleware to normalize URLs for serverless execution (e.g. Vercel rewrites)
 app.use((req, res, next) => {
-  if (
+  const originalPath =
+    (req.headers['x-matched-path'] as string) ||
+    (req.headers['x-vercel-original-url'] as string) ||
+    (req.headers['x-rewrite-url'] as string) ||
+    req.originalUrl ||
+    req.url;
+
+  if (originalPath && originalPath.startsWith('/api') && req.url === '/api') {
+    req.url = originalPath;
+  } else if (
     !req.url.startsWith('/api') &&
     !req.url.startsWith('/assets') &&
     !req.url.startsWith('/@') &&
@@ -483,6 +502,7 @@ async function startServer() {
   const isProd = process.env.NODE_ENV === 'production';
 
   if (!isProd) {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',

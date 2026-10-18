@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from '@google/genai';
-import { db } from './db.ts';
-import { GuidelineCode, Recommendation } from './types.ts';
+import { db } from './db';
+import { GuidelineCode, Recommendation } from './types';
 
 // Server-side initialization with mandatory User-Agent header for telemetry
 const ai = new GoogleGenAI({

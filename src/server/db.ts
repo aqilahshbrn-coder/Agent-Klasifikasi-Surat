@@ -9,7 +9,7 @@ import {
   Verification,
   SimilarDocumentItem,
   MetricsSummary,
-} from './types.ts';
+} from './types';
 
 const DEFAULT_DATA_DIR = path.resolve(process.cwd(), '.data');
 const DATA_DIR = process.env.VERCEL === '1' ? path.resolve('/tmp', '.data') : DEFAULT_DATA_DIR;
