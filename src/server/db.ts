@@ -11,7 +11,8 @@ import {
   MetricsSummary,
 } from './types.ts';
 
-const DATA_DIR = path.resolve(process.cwd(), '.data');
+const DEFAULT_DATA_DIR = path.resolve(process.cwd(), '.data');
+const DATA_DIR = process.env.VERCEL === '1' ? path.resolve('/tmp', '.data') : DEFAULT_DATA_DIR;
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 interface DatabaseSchema {
@@ -24,8 +25,19 @@ interface DatabaseSchema {
 }
 
 function ensureDataDirectory() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    // If running in Vercel serverless and /tmp/.data/db.json doesn't exist, copy bundled db.json if available
+    if (process.env.VERCEL === '1' && !fs.existsSync(DB_FILE)) {
+      const bundledDb = path.join(DEFAULT_DATA_DIR, 'db.json');
+      if (fs.existsSync(bundledDb)) {
+        fs.copyFileSync(bundledDb, DB_FILE);
+      }
+    }
+  } catch (e) {
+    console.warn('Could not ensure data directory:', e);
   }
 }
 

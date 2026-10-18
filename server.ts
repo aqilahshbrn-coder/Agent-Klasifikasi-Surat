@@ -16,6 +16,20 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
+// Middleware to normalize URLs for serverless execution (e.g. Vercel rewrites)
+app.use((req, res, next) => {
+  if (
+    !req.url.startsWith('/api') &&
+    !req.url.startsWith('/assets') &&
+    !req.url.startsWith('/@') &&
+    req.url !== '/' &&
+    !req.url.includes('.')
+  ) {
+    req.url = '/api' + req.url;
+  }
+  next();
+});
+
 // Active session state (simulated user session for internal officer portal)
 let currentUserId = 'u-1'; // Default: Rian Pratama (Petugas)
 
@@ -486,7 +500,13 @@ async function startServer() {
   });
 }
 
-startServer().catch((err) => {
-  console.error('Failed to start server:', err);
-  process.exit(1);
-});
+// Only start standalone HTTP server when not running in Vercel serverless environment
+if (process.env.VERCEL !== '1') {
+  startServer().catch((err) => {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  });
+}
+
+export { app };
+export default app;
